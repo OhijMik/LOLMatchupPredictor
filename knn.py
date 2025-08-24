@@ -9,7 +9,7 @@ from utils import (
 )
 
 
-def knn_impute_by_user(matrix, valid_data, k):
+def knn_impute_by_match(matrix, valid_data, k):
     """Fill in the missing values using k-Nearest Neighbors based on
     student similarity. Return the accuracy on valid_data.
 

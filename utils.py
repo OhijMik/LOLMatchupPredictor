@@ -140,8 +140,8 @@ def sparse_matrix_predictions(data, matrix, threshold=0.5):
     :return: list
     """
     predictions = []
-    for i in range(len(data["user_id"])):
-        cur_user_id = data["user_id"][i]
+    for i in range(len(data["match_id"])):
+        cur_user_id = data["match_id"][i]
         cur_question_id = data["question_id"][i]
         if matrix[cur_user_id, cur_question_id] >= threshold:
             predictions.append(1.0)
