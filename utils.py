@@ -88,48 +88,6 @@ def load_public_test_csv(root_dir="./data"):
     return _load_csv(path)
 
 
-def load_private_test_csv(root_dir="./data"):
-    """Load the private test data as a dictionary.
-
-    :param root_dir: str
-    :return: A dictionary {user_id: list, question_id: list, is_correct: list}
-        WHERE
-        user_id: a list of user id.
-        question_id: a list of question id.
-        is_correct: an empty list.
-    """
-    path = os.path.join(root_dir, "private_test_data.csv")
-    return _load_csv(path)
-
-
-def save_private_test_csv(data, file_name="private_test_result.csv"):
-    """Save the private test data as a csv file.
-
-    This should be your submission file to Kaggle.
-    :param data: A dictionary {user_id: list, question_id: list, is_correct: list}
-        WHERE
-        user_id: a list of user id.
-        question_id: a list of question id.
-        is_correct: a list of binary value indicating the correctness of
-        (user_id, question_id) pair.
-    :param file_name: str
-    :return: None
-    """
-    if not isinstance(data, dict):
-        raise Exception("Data must be a dictionary.")
-    cur_id = 1
-    valid_id = ["0", "1"]
-    with open(file_name, "w") as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(["id", "is_correct"])
-        for i in range(len(data["user_id"])):
-            if str(int(data["is_correct"][i])) not in valid_id:
-                raise Exception("Your data['is_correct'] is not in a valid format.")
-            writer.writerow([str(cur_id), str(int(data["is_correct"][i]))])
-            cur_id += 1
-    return
-
-
 def evaluate(data, predictions, threshold=0.5):
     """Return the accuracy of the predictions given the data.
 
