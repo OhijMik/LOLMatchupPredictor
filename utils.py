@@ -3,6 +3,7 @@ from scipy.sparse import load_npz
 import numpy as np
 import csv
 import os
+import pandas as pd
 
 
 def _load_csv(path):
@@ -10,15 +11,14 @@ def _load_csv(path):
     if not os.path.exists(path):
         raise Exception("The specified path {} does not exist.".format(path))
     # Initialize the data.
-    data = {"user_id": [], "question_id": [], "is_correct": []}
+    data = {"match_id": [], "win": []}
     # Iterate over the row to fill in the data.
     with open(path, "r") as csv_file:
         reader = csv.reader(csv_file)
         for row in reader:
             try:
-                data["question_id"].append(int(row[0]))
-                data["user_id"].append(int(row[1]))
-                data["is_correct"].append(int(row[2]))
+                data["match_id"].append(int(row[0]))
+                data["win"].append(int(row[1]))
             except ValueError:
                 # Pass first row.
                 pass
@@ -34,6 +34,16 @@ def load_train_sparse(root_dir="./data"):
     :param root_dir: str
     :return: 2D sparse matrix
     """
+    # Load your CSV
+    df = pd.read_csv("train_data.csv")
+
+    # Convert columns to numpy arrays
+    match_ids = df["match_id"].to_numpy()
+    winners = df["win"].to_numpy()
+
+    # Save to npz
+    np.savez("train_sparse.npz", match_ids=match_ids, winners=winners)
+
     path = os.path.join(root_dir, "train_sparse.npz")
     if not os.path.exists(path):
         raise Exception(

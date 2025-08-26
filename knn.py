@@ -80,7 +80,7 @@ def main():
     # Compute user-based KNN
     user_val_accuracies = []
     for k in k_values:
-        accuracy = knn_impute_by_user(sparse_matrix, val_data, k)
+        accuracy = knn_impute_by_match(sparse_matrix, val_data, k)
         user_val_accuracies.append(accuracy)
 
     # Plot user-based
