@@ -9,9 +9,9 @@ from utils import (
 )
 
 
-def knn_impute_by_match(matrix, valid_data, k):
+def knn_impute_by_team(matrix, valid_data, k):
     """Fill in the missing values using k-Nearest Neighbors based on
-    student similarity. Return the accuracy on valid_data.
+    team picks similarity. Return the accuracy on valid_data.
 
     See https://scikit-learn.org/stable/modules/generated/sklearn.
     impute.KNNImputer.html for details.
@@ -30,23 +30,6 @@ def knn_impute_by_match(matrix, valid_data, k):
     return acc
 
 
-def build_feature_matrix(match_meta, champion_count=171):
-    X = []
-    y = []
-    for _, row in match_meta.iterrows():
-        vec = np.zeros(champion_count)
-        blue_picks = eval(row["team_b_picks"])
-        red_picks = eval(row["team_r_picks"])
-        for c in blue_picks:
-            vec[c-1] = 1
-        for c in red_picks:
-            vec[c-1] = -1
-        X.append(vec)
-        # Label: 1 if blue wins, 0 if red wins
-        y.append(1 if row["team_b_id"] == row["win"] else 0)
-    return np.array(X), np.array(y)
-
-
 def main():
     sparse_matrix = load_train_sparse("./data").toarray()
     val_data = load_valid_csv("./data")
@@ -57,12 +40,12 @@ def main():
     print("Shape of sparse matrix:")
     print(sparse_matrix.shape)
 
-    k_values = [1, 2, 3]
+    k_values = [1, 3, 10]
 
     # Compute user-based KNN
     user_val_accuracies = []
     for k in k_values:
-        accuracy = knn_impute_by_match(sparse_matrix, val_data, k)
+        accuracy = knn_impute_by_team(sparse_matrix, val_data, k)
         user_val_accuracies.append(accuracy)
 
     # Plot user-based
@@ -79,7 +62,7 @@ def main():
     print(f"\nBest k (user-based): {best_k}")
     # Evaluate on test data with best k
     print("Test accuracy of best k (user-based): ")
-    knn_impute_by_match(sparse_matrix, test_data, best_k)
+    knn_impute_by_team(sparse_matrix, test_data, best_k)
     print("")
 
 

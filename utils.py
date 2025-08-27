@@ -137,7 +137,7 @@ def sparse_matrix_evaluate(data, matrix, threshold=0.5):
             total_accurate += 1
         if (
                 matrix[cur_team_id, cur_match_id] < threshold
-                and not data["is_correct"][i]
+                and not data["win"][i]
         ):
             total_accurate += 1
         total_prediction += 1
