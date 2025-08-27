@@ -30,6 +30,23 @@ def knn_impute_by_match(matrix, valid_data, k):
     return acc
 
 
+def build_feature_matrix(match_meta, champion_count=171):
+    X = []
+    y = []
+    for _, row in match_meta.iterrows():
+        vec = np.zeros(champion_count)
+        blue_picks = eval(row["team_b_picks"])
+        red_picks = eval(row["team_r_picks"])
+        for c in blue_picks:
+            vec[c-1] = 1
+        for c in red_picks:
+            vec[c-1] = -1
+        X.append(vec)
+        # Label: 1 if blue wins, 0 if red wins
+        y.append(1 if row["team_b_id"] == row["win"] else 0)
+    return np.array(X), np.array(y)
+
+
 def main():
     sparse_matrix = load_train_sparse("./data").toarray()
     val_data = load_valid_csv("./data")
@@ -40,13 +57,7 @@ def main():
     print("Shape of sparse matrix:")
     print(sparse_matrix.shape)
 
-    #####################################################################
-    # TODO:                                                             #
-    # Compute the validation accuracy for each k. Then pick k* with     #
-    # the best performance and report the test accuracy with the        #
-    # chosen k*.                                                        #
-    #####################################################################
-    k_values = [1, 6, 11, 16, 21, 26]
+    k_values = [1, 2, 3]
 
     # Compute user-based KNN
     user_val_accuracies = []
@@ -70,9 +81,6 @@ def main():
     print("Test accuracy of best k (user-based): ")
     knn_impute_by_match(sparse_matrix, test_data, best_k)
     print("")
-    #####################################################################
-    #                       END OF YOUR CODE                            #
-    #####################################################################
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
-from scipy.sparse import load_npz
+from scipy.sparse import csr_matrix, save_npz, load_npz
+
 
 import numpy as np
 import csv
@@ -35,14 +36,17 @@ def load_train_sparse(root_dir="./data"):
     :return: 2D sparse matrix
     """
     # Load your CSV
-    df = pd.read_csv("train_data.csv")
+    df = pd.read_csv("data/train_data.csv")
 
-    # Convert columns to numpy arrays
-    match_ids = df["match_id"].to_numpy()
-    winners = df["win"].to_numpy()
+    # Example: make a sparse matrix with match_id as row index and "win" as value
+    rows = df["match_id"].to_numpy()
+    cols = [0] * len(rows)   # single column
+    vals = df["win"].to_numpy()
 
-    # Save to npz
-    np.savez("train_sparse.npz", match_ids=match_ids, winners=winners)
+    sparse_matrix = csr_matrix((vals, (rows, cols)))
+
+    # Save
+    save_npz("data/train_sparse.npz", sparse_matrix)
 
     path = os.path.join(root_dir, "train_sparse.npz")
     if not os.path.exists(path):
@@ -125,14 +129,13 @@ def sparse_matrix_evaluate(data, matrix, threshold=0.5):
     """
     total_prediction = 0
     total_accurate = 0
-    for i in range(len(data["is_correct"])):
-        cur_user_id = data["user_id"][i]
-        cur_question_id = data["question_id"][i]
-        if matrix[cur_user_id, cur_question_id] >= threshold and data["is_correct"][i]:
+    for i in range(len(data["win"])):
+        cur_match_id = data["match_id"][i]
+        if matrix[cur_match_id, 0] >= threshold and data["win"][i]:
             total_accurate += 1
         if (
-            matrix[cur_user_id, cur_question_id] < threshold
-            and not data["is_correct"][i]
+            matrix[cur_match_id, 0] < threshold
+            and not data["win"][i]
         ):
             total_accurate += 1
         total_prediction += 1
