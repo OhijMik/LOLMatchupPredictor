@@ -12,14 +12,15 @@ def _load_csv(path):
     if not os.path.exists(path):
         raise Exception("The specified path {} does not exist.".format(path))
     # Initialize the data.
-    data = {"match_id": [], "win": []}
+    data = {"team_id": [], "match_id": [], "win": []}
     # Iterate over the row to fill in the data.
     with open(path, "r") as csv_file:
         reader = csv.reader(csv_file)
         for row in reader:
             try:
                 data["match_id"].append(int(row[0]))
-                data["win"].append(int(row[1]))
+                data["team_id"].append(int(row[1]))
+                data["win"].append(int(row[2]))
             except ValueError:
                 # Pass first row.
                 pass
@@ -40,7 +41,7 @@ def load_train_sparse(root_dir="./data"):
 
     # Example: make a sparse matrix with match_id as row index and "win" as value
     rows = df["match_id"].to_numpy()
-    cols = [0] * len(rows)   # single column
+    cols = df["team_id"].to_numpy()
     vals = df["win"].to_numpy()
 
     sparse_matrix = csr_matrix((vals, (rows, cols)))
@@ -110,12 +111,12 @@ def evaluate(data, predictions, threshold=0.5):
     :param threshold: float
     :return: float
     """
-    if len(data["is_correct"]) != len(predictions):
+    if len(data["win"]) != len(predictions):
         raise Exception("Mismatch of dimensions between data and prediction.")
     if isinstance(predictions, list):
         predictions = np.array(predictions).astype(np.float64)
-    return np.sum((predictions >= threshold) == data["is_correct"]) / float(
-        len(data["is_correct"])
+    return np.sum((predictions >= threshold) == data["win"]) / float(
+        len(data["win"])
     )
 
 
@@ -130,12 +131,13 @@ def sparse_matrix_evaluate(data, matrix, threshold=0.5):
     total_prediction = 0
     total_accurate = 0
     for i in range(len(data["win"])):
+        cur_team_id = data["team_id"][i]
         cur_match_id = data["match_id"][i]
-        if matrix[cur_match_id, 0] >= threshold and data["win"][i]:
+        if matrix[cur_team_id, cur_match_id] >= threshold and data["win"][i]:
             total_accurate += 1
         if (
-            matrix[cur_match_id, 0] < threshold
-            and not data["win"][i]
+                matrix[cur_team_id, cur_match_id] < threshold
+                and not data["is_correct"][i]
         ):
             total_accurate += 1
         total_prediction += 1
@@ -153,33 +155,36 @@ def sparse_matrix_predictions(data, matrix, threshold=0.5):
     :return: list
     """
     predictions = []
-    for i in range(len(data["match_id"])):
-        cur_user_id = data["match_id"][i]
-        cur_question_id = data["question_id"][i]
-        if matrix[cur_user_id, cur_question_id] >= threshold:
+    for i in range(len(data["team_id"])):
+        cur_team_id = data["team_id"][i]
+        cur_match_id = data["match_id"][i]
+        if matrix[cur_team_id, cur_match_id] >= threshold:
             predictions.append(1.0)
         else:
             predictions.append(0.0)
     return predictions
 
 
-def load_question_meta(path="./data/question_meta.csv"):
-    """ Load the question metadata and return it as a dictionary.
+def load_match_meta(path="./data/match_meta.csv"):
+    """ Load the match metadata and return it as a dictionary.
 
-    :return: A dictionary {question_id: list, subject_id: {int: list[int]}}
+    :return: A dictionary {match_id: list, team_b_id: list, team_r_id: list,
+        team_b_picks: {int: list[int]}, team_r_picks: {int: list[int]}}
     """
     if not os.path.exists(path):
         raise Exception("The specified path {} does not exist.".format(path))
     # Initialize the data.
-    data = {"question_id": [], "subject_id": {}}
+    data = {"match_id": [], "team_b_id": [], "team_r_id": [], "team_b_picks": {}, "team_r_picks": {}}
     # Iterate over the row to fill in the data.
     with open(path, "r") as csv_file:
         reader = csv.reader(csv_file)
         for row in reader:
             try:
-                data["question_id"].append(int(row[0]))
-                #data["subject_id"].append(list(row[1]))
-                data["subject_id"][int(row[0])] = str_to_set(row[1])
+                data["match_id"].append(int(row[0]))
+                data["team_b_id"].append(int(row[1]))
+                data["team_r_id"].append(int(row[2]))
+                data["team_b_picks"][int(row[0])] = list(row[3])
+                data["team_r_picks"][int(row[0])] = list(row[4])
             except ValueError:
                 # Pass first row.
                 pass
@@ -188,11 +193,3 @@ def load_question_meta(path="./data/question_meta.csv"):
                 pass
     return data
 
-
-def str_to_set(input):
-    """
-    Takes a string of a list and returns a set of the elements, removing 0
-
-    "[0, 1, 5, 98, 147, 167]" --> {1, 5, 98, 147, 167}
-    """
-    return set(eval(input)[1:])
