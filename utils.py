@@ -18,8 +18,8 @@ def _load_csv(path):
         reader = csv.reader(csv_file)
         for row in reader:
             try:
-                data["match_id"].append(int(row[0]))
-                data["team_id"].append(int(row[1]))
+                data["team_id"].append(int(row[0]))
+                data["match_id"].append(int(row[1]))
                 data["win"].append(int(row[2]))
             except ValueError:
                 # Pass first row.
@@ -40,8 +40,8 @@ def load_train_sparse(root_dir="./data"):
     df = pd.read_csv("data/train_data.csv")
 
     # Example: make a sparse matrix with match_id as row index and "win" as value
-    rows = df["match_id"].to_numpy()
-    cols = df["team_id"].to_numpy()
+    rows = df["team_id"].to_numpy()
+    cols = df["match_id"].to_numpy()
     vals = df["win"].to_numpy()
 
     sparse_matrix = csr_matrix((vals, (rows, cols)))
@@ -135,10 +135,7 @@ def sparse_matrix_evaluate(data, matrix, threshold=0.5):
         cur_match_id = data["match_id"][i]
         if matrix[cur_team_id, cur_match_id] >= threshold and data["win"][i]:
             total_accurate += 1
-        if (
-                matrix[cur_team_id, cur_match_id] < threshold
-                and not data["win"][i]
-        ):
+        if matrix[cur_team_id, cur_match_id] < threshold and not data["win"][i]:
             total_accurate += 1
         total_prediction += 1
     return total_accurate / float(total_prediction)
