@@ -34,20 +34,26 @@ def knn_impute_by_team(matrix, valid_data, k):
 def main():
     sparse_matrix = load_train_sparse("./data").toarray().astype(float)
     test_data = load_public_test_csv("./data")
-    print("Sparse matrix:")
-    print(sparse_matrix)
-    print("Shape of sparse matrix:")
-    print(sparse_matrix.shape)
 
-    # Get all labeled entries
-    team_ids, match_ids = np.nonzero(~np.isnan(sparse_matrix))
-    wins = sparse_matrix[team_ids, match_ids]
+    # Convert IDs to 0-based (Python indexing)
+    test_data["match_id"] = np.array(test_data["match_id"]) - 1
+    test_data["team_id"] = np.array(test_data["team_id"]) - 1
 
-    # Split into train / validation indices
+    # Determine dimensions to include all match IDs (train + test)
+    num_teams = sparse_matrix.shape[0]
+    max_match_id = max(sparse_matrix.shape[1], max(test_data["match_id"]) + 1)
+
+    # Expand the matrix to cover all match IDs
+    expanded_matrix = np.full((num_teams, max_match_id), np.nan)
+    expanded_matrix[:, :sparse_matrix.shape[1]] = sparse_matrix
+
+    # Get all labeled entries for train/val split
+    team_ids, match_ids = np.nonzero(~np.isnan(expanded_matrix))
+    wins = expanded_matrix[team_ids, match_ids]
+
+    # Split indices into train and validation
     train_idx, val_idx = train_test_split(
-        np.arange(len(match_ids)),
-        test_size=0.2,
-        random_state=42
+        np.arange(len(match_ids)), test_size=0.2, random_state=42
     )
 
     # Build train and val dictionaries
@@ -62,34 +68,26 @@ def main():
         "win": wins[val_idx]
     }
 
-    # Mask validation entries in the sparse matrix
-    sparse_matrix_masked = sparse_matrix.copy()
-    sparse_matrix_masked[val_data["team_id"], val_data["match_id"]] = np.nan
+    # Mask validation entries in matrix for proper KNN training
+    masked_matrix = expanded_matrix.copy()
+    masked_matrix[val_data["team_id"], val_data["match_id"]] = np.nan
 
     k_values = [1, 3, 10]
+    val_accuracies = []
 
-    # Compute user-based KNN
-    user_val_accuracies = []
     for k in k_values:
-        accuracy = knn_impute_by_team(sparse_matrix_masked, val_data, k)
-        user_val_accuracies.append(accuracy)
-        print(f"k={k}, Validation Accuracy={accuracy:.4f}")
-
-    # Plot user-based
-    plt.figure(figsize=(8, 5))
-    plt.plot(k_values, user_val_accuracies, marker='o')
-    plt.title("Validation Accuracy vs. k -- User based")
-    plt.xlabel("k")
-    plt.ylabel("Validation Accuracy")
-    plt.grid(True)
-    plt.show()
+        acc = knn_impute_by_team(masked_matrix, val_data, k)
+        val_accuracies.append(acc)
+        print(f"k={k}, Validation Accuracy={acc:.4f}")
 
     # Find the best k for user-based
-    best_k = k_values[np.argmax(user_val_accuracies)]
+    best_k = k_values[np.argmax(val_accuracies)]
     print(f"\nBest k (user-based): {best_k}")
+
     # Evaluate on test data with best k
     print("Test accuracy of best k (user-based): ")
-    knn_impute_by_team(sparse_matrix, test_data, best_k)
+    print(masked_matrix.shape)
+    knn_impute_by_team(masked_matrix, test_data, best_k)
     print("")
 
 
