@@ -14,34 +14,21 @@ def _load_csv(path):
     if not os.path.exists(path):
         raise Exception("The specified path {} does not exist.".format(path))
     # Initialize the data.
-    team_ids = []
-    features = []
-    labels = []
+    data = {"team_id": [], "draft_id": [], "win": []}
+    # Iterate over the row to fill in the data.
     with open(path, "r") as csv_file:
         reader = csv.reader(csv_file)
-        header = next(reader)  # skip header row
-
         for row in reader:
             try:
-                team_id = int(row[0])
-                # Next 2*num_champions columns: team + enemy picks
-                team_picks = [int(x) for x in row[1:1+num_champions]]
-                enemy_picks = [int(x) for x in row[1+num_champions:1+2*num_champions]]
-                win = int(row[-1])
-
-                team_ids.append(team_id)
-                features.append(team_picks + enemy_picks)
-                labels.append(win)
-
-            except (ValueError, IndexError):
-                # Skip malformed rows
-                continue
-
-    data = {
-        "team_id": team_ids,
-        "drafts": np.array(features, dtype=np.int32),
-        "win": np.array(labels, dtype=np.int32)
-    }
+                data["question_id"].append(int(row[0]))
+                data["user_id"].append(int(row[1]))
+                data["is_correct"].append(int(row[2]))
+            except ValueError:
+                # Pass first row.
+                pass
+            except IndexError:
+                # is_correct might not be available.
+                pass
     return data
 
 
