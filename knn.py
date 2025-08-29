@@ -32,51 +32,50 @@ def knn_impute_by_team(matrix, valid_data, k):
 
 
 def main():
-    sparse_matrix = load_train_sparse("./data")
-    test_data = load_public_test_csv("./data")
+    sparse_matrix = load_train_sparse("./data").toarray().astype(float)
 
-    # Convert IDs to 0-based (Python indexing)
-    test_data["match_id"] = np.array(test_data["match_id"]) - 1
-    test_data["team_id"] = np.array(test_data["team_id"]) - 1
+    # Get all labeled entries
+    team_ids, draft_ids = np.nonzero(~np.isnan(sparse_matrix))
+    wins = sparse_matrix[team_ids, draft_ids]
 
-    # Determine dimensions to include all match IDs (train + test)
-    num_teams = sparse_matrix.shape[0]
-    max_match_id = max(sparse_matrix.shape[1], max(test_data["match_id"]) + 1)
-
-    # Expand the matrix to cover all match IDs
-    expanded_matrix = np.full((num_teams, max_match_id), np.nan)
-    expanded_matrix[:, :sparse_matrix.shape[1]] = sparse_matrix
-
-    # Get all labeled entries for train/val split
-    team_ids, match_ids = np.nonzero(~np.isnan(expanded_matrix))
-    wins = expanded_matrix[team_ids, match_ids]
-
-    # Split indices into train and validation
+    # Split for test set
+    train_val_idx, test_idx = train_test_split(
+        np.arange(len(draft_ids)),
+        test_size=0.2,
+        random_state=42
+    )
     train_idx, val_idx = train_test_split(
-        np.arange(len(match_ids)), test_size=0.2, random_state=42
+        train_val_idx,
+        test_size=0.25,  # 0.25 * 0.8 = 0.2 of total → 60/20/20 split
+        random_state=42
     )
 
     # Build train and val dictionaries
     train_data = {
         "team_id": team_ids[train_idx],
-        "match_id": match_ids[train_idx],
+        "draft_id": draft_ids[train_idx],
         "win": wins[train_idx]
     }
     val_data = {
         "team_id": team_ids[val_idx],
-        "match_id": match_ids[val_idx],
+        "draft_id": draft_ids[val_idx],
         "win": wins[val_idx]
     }
+    test_data = {
+        "team_id": team_ids[test_idx],
+        "draft_id": draft_ids[test_idx],
+        "win": wins[test_idx]
+    }
 
-    # Mask validation entries in matrix for proper KNN training
-    masked_matrix = expanded_matrix.copy()
-    masked_matrix[val_data["team_id"], val_data["match_id"]] = np.nan
+    # Mask validation entries in the sparse matrix
+    sparse_matrix_masked = sparse_matrix.copy()
+    sparse_matrix_masked[val_data["team_id"], val_data["draft_id"]] = np.nan
 
     k_values = [1, 3, 10]
     val_accuracies = []
 
     for k in k_values:
-        acc = knn_impute_by_team(masked_matrix, val_data, k)
+        acc = knn_impute_by_team(sparse_matrix_masked, val_data, k)
         val_accuracies.append(acc)
         print(f"k={k}, Validation Accuracy={acc:.4f}")
 
@@ -86,8 +85,8 @@ def main():
 
     # Evaluate on test data with best k
     print("Test accuracy of best k (user-based): ")
-    print(masked_matrix.shape)
-    knn_impute_by_team(masked_matrix, test_data, best_k)
+    print(sparse_matrix_masked.shape)
+    knn_impute_by_team(sparse_matrix_masked, test_data, best_k)
     print("")
 
 

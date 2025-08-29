@@ -39,17 +39,18 @@ def load_train_sparse(root_dir="./data"):
     :return: 2D sparse matrix
     """
     # Load your CSV into a pandas DataFrame
-    df = pd.read_csv(os.path.join(root_dir, "train_sparse.csv"))
+    df = pd.read_csv(os.path.join(root_dir, "train_data.csv"))
 
-    # Extract columns as numpy arrays
-    team_ids = df["team_id"].to_numpy()
-    draft_id = df["draft_id"].to_numpy()
-    wins = df["win"].to_numpy()
+    rows = df["draft_id"].to_numpy()
+    cols = df["team_id"].to_numpy()
+    vals = df["win"].to_numpy()
+
+    sparse_matrix = csr_matrix((vals, (rows, cols)))
 
     # Save as an .npz file
-    np.savez("training_data.npz", team_id=team_ids, draft_id=draft_id, win=wins)
-
     path = os.path.join(root_dir, "train_sparse.npz")
+    save_npz(path, sparse_matrix)
+
     if not os.path.exists(path):
         raise Exception(
             "The specified path {} " "does not exist.".format(os.path.abspath(path))
@@ -133,9 +134,9 @@ def sparse_matrix_evaluate(data, matrix, threshold=0.5):
     for i in range(len(data["win"])):
         cur_team_id = data["team_id"][i]
         cur_draft_id = data["draft_id"][i]
-        if matrix[cur_team_id, cur_draft_id] >= threshold and data["is_correct"][i]:
+        if matrix[cur_team_id, cur_draft_id] >= threshold and data["win"][i]:
             total_accurate += 1
-        if matrix[cur_team_id, cur_draft_id] < threshold and not data["is_correct"][i]:
+        if matrix[cur_team_id, cur_draft_id] < threshold and not data["win"][i]:
             total_accurate += 1
         total_prediction += 1
     return total_accurate / float(total_prediction)
