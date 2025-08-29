@@ -34,6 +34,11 @@ def knn_impute_by_team(matrix, valid_data, k):
 def main():
     sparse_matrix = load_train_sparse("./data").toarray().astype(float)
 
+    print("Sparse matrix:")
+    print(sparse_matrix)
+    print("Shape of sparse matrix:")
+    print(sparse_matrix.shape)
+
     # Get all labeled entries
     team_ids, draft_ids = np.nonzero(~np.isnan(sparse_matrix))
     wins = sparse_matrix[team_ids, draft_ids]
@@ -67,27 +72,50 @@ def main():
         "win": wins[test_idx]
     }
 
-    # Mask validation entries in the sparse matrix
-    sparse_matrix_masked = sparse_matrix.copy()
-    sparse_matrix_masked[val_data["team_id"], val_data["draft_id"]] = np.nan
+    # Mask validation entries in the sparse matrix for val data
+    sparse_matrix_masked_val = sparse_matrix.copy()
+    sparse_matrix_masked_val[val_data["team_id"], val_data["draft_id"]] = np.nan
 
     k_values = [1, 3, 10]
     val_accuracies = []
 
     for k in k_values:
-        acc = knn_impute_by_team(sparse_matrix_masked, val_data, k)
+        print(f"k={k}")
+        acc = knn_impute_by_team(sparse_matrix_masked_val, val_data, k)
         val_accuracies.append(acc)
-        print(f"k={k}, Validation Accuracy={acc:.4f}")
 
     # Find the best k for user-based
     best_k = k_values[np.argmax(val_accuracies)]
-    print(f"\nBest k (user-based): {best_k}")
+    print(f"\nBest k (team-based): {best_k}")
+
+    # Mask validation entries in the sparse matrix for test data
+    sparse_matrix_masked_test = sparse_matrix.copy()
+    sparse_matrix_masked_test[test_data["team_id"], test_data["draft_id"]] = np.nan
 
     # Evaluate on test data with best k
     print("Test accuracy of best k (user-based): ")
-    print(sparse_matrix_masked.shape)
-    knn_impute_by_team(sparse_matrix_masked, test_data, best_k)
+    nbrs = KNNImputer(n_neighbors=best_k)
+    # We use NaN-Euclidean distance measure.
+    mat = nbrs.fit_transform(sparse_matrix_masked_test)
+    acc = sparse_matrix_evaluate(test_data, mat)
+    print("Test Accuracy: {}".format(acc))
     print("")
+
+    # Mask any entries you want to predict as NaN (if not already missing)
+    team_idx = 8  # the integer index for the team
+    draft_idx = 301  # the integer index for the draft
+    sparse_matrix[draft_idx, team_idx] = np.nan
+
+    # Apply KNN imputer with your chosen best k
+    imputer = KNNImputer(n_neighbors=best_k)
+    imputed_matrix = imputer.fit_transform(sparse_matrix)
+
+    # Get the predicted win probability
+    predicted_win_prob = imputed_matrix[draft_idx, team_idx]
+
+    # Convert to binary prediction
+    predicted_win = int(predicted_win_prob >= 0.5)
+    print(f"Predicted probability: {predicted_win_prob:.3f}, Predicted win: {predicted_win}")
 
 
 if __name__ == "__main__":
