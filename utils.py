@@ -1,4 +1,4 @@
-from scipy.sparse import csr_matrix, save_npz, load_npz
+from scipy.sparse import csr_matrix, hstack, save_npz, load_npz
 
 
 import numpy as np
@@ -6,27 +6,42 @@ import csv
 import os
 import pandas as pd
 
+num_champions = 171
+
 
 def _load_csv(path):
     # A helper function to load the csv file.
     if not os.path.exists(path):
         raise Exception("The specified path {} does not exist.".format(path))
     # Initialize the data.
-    data = {"team_id": [], "match_id": [], "win": []}
-    # Iterate over the row to fill in the data.
+    team_ids = []
+    features = []
+    labels = []
     with open(path, "r") as csv_file:
         reader = csv.reader(csv_file)
+        header = next(reader)  # skip header row
+
         for row in reader:
             try:
-                data["team_id"].append(int(row[0]))
-                data["match_id"].append(int(row[1]))
-                data["win"].append(int(row[2]))
-            except ValueError:
-                # Pass first row.
-                pass
-            except IndexError:
-                # is_correct might not be available.
-                pass
+                team_id = int(row[0])
+                # Next 2*num_champions columns: team + enemy picks
+                team_picks = [int(x) for x in row[1:1+num_champions]]
+                enemy_picks = [int(x) for x in row[1+num_champions:1+2*num_champions]]
+                win = int(row[-1])
+
+                team_ids.append(team_id)
+                features.append(team_picks + enemy_picks)
+                labels.append(win)
+
+            except (ValueError, IndexError):
+                # Skip malformed rows
+                continue
+
+    data = {
+        "team_id": team_ids,
+        "drafts": np.array(features, dtype=np.int32),
+        "win": np.array(labels, dtype=np.int32)
+    }
     return data
 
 
@@ -37,17 +52,28 @@ def load_train_sparse(root_dir="./data"):
     :return: 2D sparse matrix
     """
     # Load your CSV
-    df = pd.read_csv("data/train_data.csv")
+    path_csv = os.path.join(root_dir, "train_data.csv")
+    df = pd.read_csv(path_csv)
 
-    # Example: make a sparse matrix with match_id as row index and "win" as value
-    rows = df["team_id"].to_numpy()
-    cols = df["match_id"].to_numpy()
-    vals = df["win"].to_numpy()
+    # Drop team_id (just metadata, not needed for training matrix)
+    feature_cols = df.columns.drop(["team_id", "win"])
 
-    sparse_matrix = csr_matrix((vals, (rows, cols)))
+    # Features: ally + enemy picks (one-hot)
+    X = df[feature_cols].to_numpy(dtype=np.int8)
 
-    # Save
-    save_npz("data/train_sparse.npz", sparse_matrix)
+    # Labels: win
+    y = df["win"].to_numpy(dtype=np.int8).reshape(-1, 1)
+
+    # Convert to sparse
+    sparse_X = csr_matrix(X)
+    sparse_y = csr_matrix(y)
+
+    # Combine features + label
+    sparse_matrix = hstack([sparse_X, sparse_y], format="csr")
+
+    # Save to disk
+    save_path = os.path.join(root_dir, "train_sparse.npz")
+    save_npz(save_path, sparse_matrix)
 
     path = os.path.join(root_dir, "train_sparse.npz")
     if not os.path.exists(path):
@@ -132,10 +158,10 @@ def sparse_matrix_evaluate(data, matrix, threshold=0.5):
     total_accurate = 0
     for i in range(len(data["win"])):
         cur_team_id = data["team_id"][i]
-        cur_match_id = data["match_id"][i]
-        if matrix[cur_team_id, cur_match_id] >= threshold and data["win"][i]:
+        cur_drafts = data["drafts"][i]
+        if matrix[cur_team_id, cur_drafts] >= threshold and data["win"][i]:
             total_accurate += 1
-        if matrix[cur_team_id, cur_match_id] < threshold and not data["win"][i]:
+        if matrix[cur_team_id, cur_drafts] < threshold and not data["win"][i]:
             total_accurate += 1
         total_prediction += 1
     return total_accurate / float(total_prediction)

@@ -32,7 +32,7 @@ def knn_impute_by_team(matrix, valid_data, k):
 
 
 def main():
-    sparse_matrix = load_train_sparse("./data").toarray().astype(float)
+    sparse_matrix = load_train_sparse("./data")
     test_data = load_public_test_csv("./data")
 
     # Convert IDs to 0-based (Python indexing)
