@@ -5,8 +5,21 @@ import numpy as np
 import csv
 import os
 import pandas as pd
+import ast
 
-num_champions = 171
+
+num_champions = 171  # total unique champions
+champion_ids = list(range(num_champions))  # assuming champions are indexed 0..170
+
+
+def draft_to_vector(ally_picks, enemy_picks):
+    """Convert ally + enemy champions into a binary feature vector."""
+    vec = np.zeros(2 * num_champions, dtype=np.int32)
+    for champ in ally_picks:
+        vec[champ - 1] = 1
+    for champ in enemy_picks:
+        vec[num_champions + champ - 1] = 1
+    return vec
 
 
 def _load_csv(path):
@@ -71,7 +84,18 @@ def load_train_csv(root_dir="./data"):
         (user_id, question_id) pair.
     """
     path = os.path.join(root_dir, "train_data.csv")
-    return _load_csv(path)
+    df = pd.read_csv(path)
+
+    # Parse champion picks
+    df["ally_picks"] = df["ally_picks"].apply(ast.literal_eval)
+    df["enemy_picks"] = df["enemy_picks"].apply(ast.literal_eval)
+
+    # Convert drafts to binary vectors
+    X = np.array([draft_to_vector(ally, enemy) for ally, enemy in zip(df["ally_picks"], df["enemy_picks"])])
+    y = df["win"].to_numpy()
+    team_ids = df["team_id"].to_numpy()
+
+    return X, y, team_ids
 
 
 def load_valid_csv(root_dir="./data"):
