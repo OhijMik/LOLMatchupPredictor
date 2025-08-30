@@ -1,15 +1,15 @@
 import numpy as np
-from sklearn.impute import KNNImputer
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
+import pandas as pd
+import ast
 
 from utils import (
-    draft_to_vector, load_train_csv, load_valid_csv,
-    load_public_test_csv,
-    load_train_sparse,
-    sparse_matrix_evaluate,
+    draft_to_vector,
+    load_train_csv,
+    names_to_ids
 )
+
 
 def predict_draft(knn_model, ally_draft, enemy_draft):
     """
@@ -56,12 +56,38 @@ def main():
     test_acc = knn.score(X_test, y_test)
     print(f"Test Accuracy: {test_acc:.4f}")
 
-    # Example prediction
-    ally_draft = [1, 34, 67, 102, 140]  # champion IDs
-    enemy_draft = [3, 50, 72, 101, 160]
-    pred_class, pred_prob = predict_draft(knn, ally_draft, enemy_draft)
+    # # Example prediction 1
+    # ally_draft = [1, 34, 67, 102, 140]  # champion IDs
+    # enemy_draft = [3, 50, 72, 101, 160]
+    # pred_class, pred_prob = predict_draft(knn, ally_draft, enemy_draft)
+    #
+    # print(f"Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
+    #
+    # # Example prediction 2
+    # ally_draft = ["Ambessa", "Wukong", "Azir", "Corki", "Bard"]  # champion names
+    # enemy_draft = ["Rumble", "Sejuani", "Yone", "Varus", "Karma"]
+    #
+    # # Convert names to IDs
+    # ally_ids = names_to_ids(ally_draft)
+    # enemy_ids = names_to_ids(enemy_draft)
+    #
+    # pred_class, pred_prob = predict_draft(knn, ally_ids, enemy_ids)
+    #
+    # print(f"Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
 
-    print(f"Predicted win: {pred_class}, Probability: {pred_prob:.2f}")
+    # Example prediction 3
+    predict_file = pd.read_csv("data/predict.csv").reset_index(drop=True)
+
+    for i in range(len(predict_file["team_id"])):
+        ally_names = ast.literal_eval(predict_file.loc[i, "ally_draft"])
+        enemy_names = ast.literal_eval(predict_file.loc[i, "enemy_draft"])
+
+        ally_ids = names_to_ids(ally_names)
+        enemy_ids = names_to_ids(enemy_names)
+
+        pred_class, pred_prob = predict_draft(knn, ally_ids, enemy_ids)
+
+        print(f"Match {i + 1}, Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
 
 
 if __name__ == "__main__":
