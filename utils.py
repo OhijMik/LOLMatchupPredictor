@@ -7,9 +7,12 @@ import os
 import pandas as pd
 import ast
 
+champion_meta = pd.read_csv("./data/champion_meta.csv", index_col="champion_id")
+# Drop "name" because it's not numeric
+champion_features = champion_meta.drop(columns=["name"]).to_numpy()
 
-num_champions = 171  # total unique champions
-champion_ids = list(range(num_champions))  # assuming champions are indexed 0..170
+num_champions = champion_features.shape[0]
+num_roles = champion_features.shape[1]
 
 
 def draft_to_vector(ally_picks, enemy_picks):
@@ -19,7 +22,13 @@ def draft_to_vector(ally_picks, enemy_picks):
         vec[champ - 1] = 1
     for champ in enemy_picks:
         vec[num_champions + champ - 1] = 1
-    return vec
+
+    # Role/class feature part
+    ally_roles = np.sum(champion_features[np.array(ally_picks) - 1], axis=0)
+    enemy_roles = np.sum(champion_features[np.array(enemy_picks) - 1], axis=0)
+
+    # Concatenate: [binary_draft, ally_roles, enemy_roles]
+    return np.concatenate([ally_roles, enemy_roles])
 
 
 def _load_csv(path):

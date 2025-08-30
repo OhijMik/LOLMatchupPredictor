@@ -11,26 +11,23 @@ from utils import (
     sparse_matrix_evaluate,
 )
 
-
-def knn_impute_by_team(matrix, valid_data, k):
-    """Fill in the missing values using k-Nearest Neighbors based on
-    team similarity. Return the accuracy on valid_data.
-
-    See https://scikit-learn.org/stable/modules/generated/sklearn.
-    impute.KNNImputer.html for details.
-
-    :param matrix: 2D sparse matrix
-    :param valid_data: A dictionary {user_id: list, question_id: list,
-    is_correct: list}
-    :param k: int
-    :return: float
+def predict_draft(knn_model, ally_draft, enemy_draft):
     """
-    nbrs = KNNImputer(n_neighbors=k)
-    # We use NaN-Euclidean distance measure.
-    mat = nbrs.fit_transform(matrix)
-    acc = sparse_matrix_evaluate(valid_data, mat)
-    print("Validation Accuracy: {}".format(acc))
-    return acc
+    Predict win probability or class for a given draft.
+
+    :param knn_model: trained KNeighborsClassifier
+    :param ally_picks: list of ally champion_ids (1-indexed)
+    :param enemy_picks: list of enemy champion_ids (1-indexed)
+    :return: predicted class (0/1) and probability of winning
+    """
+    # Convert draft to vector with role/class features
+    draft_vec = draft_to_vector(ally_draft, enemy_draft).reshape(1, -1)
+
+    # Predict probability and class
+    win_prob = knn_model.predict_proba(draft_vec)[0][1]  # probability of winning
+    win_class = knn_model.predict(draft_vec)[0]          # predicted class 0/1
+
+    return win_class, win_prob
 
 
 def main():
@@ -62,11 +59,9 @@ def main():
     # Example prediction
     ally_draft = [1, 34, 67, 102, 140]  # champion IDs
     enemy_draft = [3, 50, 72, 101, 160]
-    x_new = np.array([draft_to_vector(ally_draft, enemy_draft)])
-    pred_prob = knn.predict_proba(x_new)[0][1]
-    pred_win = int(pred_prob >= 0.5)
+    pred_class, pred_prob = predict_draft(knn, ally_draft, enemy_draft)
 
-    print(f"Predicted win probability: {pred_prob:.3f}, Predicted win: {pred_win}")
+    print(f"Predicted win: {pred_class}, Probability: {pred_prob:.2f}")
 
 
 if __name__ == "__main__":
