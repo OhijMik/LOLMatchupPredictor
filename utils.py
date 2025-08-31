@@ -19,12 +19,6 @@ num_roles = champion_features.shape[1]
 
 def draft_to_vector(ally_picks, enemy_picks):
     """Convert ally + enemy champions into a binary feature vector."""
-    vec = np.zeros(2 * num_champions, dtype=np.int32)
-    for champ in ally_picks:
-        vec[champ - 1] = 1
-    for champ in enemy_picks:
-        vec[num_champions + champ - 1] = 1
-
     # Role/class feature part
     ally_roles = np.sum(champion_features[np.array(ally_picks) - 1], axis=0)
     enemy_roles = np.sum(champion_features[np.array(enemy_picks) - 1], axis=0)
@@ -51,12 +45,30 @@ def load_train_csv(root_dir="./data"):
     df["ally_draft"] = df["ally_draft"].apply(ast.literal_eval)
     df["enemy_draft"] = df["enemy_draft"].apply(ast.literal_eval)
 
-    # Convert drafts to binary vectors
-    X = np.array([draft_to_vector(ally, enemy) for ally, enemy in zip(df["ally_draft"], df["enemy_draft"])])
-    y = df["win"].to_numpy()
-    team_ids = df["team_id"].to_numpy()
+    # # Convert drafts to binary vectors
+    # X = np.array([draft_to_vector(ally, enemy) for ally, enemy in zip(df["ally_draft"], df["enemy_draft"])])
+    # y = df["win"].to_numpy()
+    # team_ids = df["team_id"].to_numpy()
+    #
+    # return X, y, team_ids
 
-    return X, y, team_ids
+    # Convert drafts to vectors
+    draft_X = np.array([draft_to_vector(ally, enemy) for ally, enemy in zip(df["ally_draft"], df["enemy_draft"])])
+
+    # One-hot encode team_id
+    unique_team_ids = sorted(df["team_id"].unique())
+    team_id_to_index = {tid: i for i, tid in enumerate(unique_team_ids)}
+
+    team_one_hot = np.zeros((len(df), len(unique_team_ids)), dtype=np.int32)
+    for i, tid in enumerate(df["team_id"]):
+        team_one_hot[i, team_id_to_index[tid]] = 1
+
+    # Final feature matrix: [draft_features, team_id_onehot]
+    X = np.hstack([draft_X, team_one_hot])
+
+    y = df["win"].to_numpy()
+
+    return X, y
 
 
 def names_to_ids(draft_names):
