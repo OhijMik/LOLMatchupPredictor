@@ -23,34 +23,18 @@ def draft_to_vector(ally_picks, enemy_picks):
     ally_roles = np.sum(champion_features[np.array(ally_picks) - 1], axis=0)
     enemy_roles = np.sum(champion_features[np.array(enemy_picks) - 1], axis=0)
 
-    # Concatenate: [binary_draft, ally_roles, enemy_roles]
+    # Concatenate: [ally_roles, enemy_roles]
     return np.concatenate([ally_roles, enemy_roles])
 
 
 def load_train_csv(root_dir="./data"):
-    """Load the training data as a dictionary.
-
-    :param root_dir: str
-    :return: A dictionary {user_id: list, question_id: list, is_correct: list}
-        WHERE
-        user_id: a list of user id.
-        question_id: a list of question id.
-        is_correct: a list of binary value indicating the correctness of
-        (user_id, question_id) pair.
-    """
+    """Load training data with ally/enemy drafts."""
     path = os.path.join(root_dir, "train_data.csv")
     df = pd.read_csv(path)
 
     # Parse champion picks
     df["ally_draft"] = df["ally_draft"].apply(ast.literal_eval)
     df["enemy_draft"] = df["enemy_draft"].apply(ast.literal_eval)
-
-    # # Convert drafts to binary vectors
-    # X = np.array([draft_to_vector(ally, enemy) for ally, enemy in zip(df["ally_draft"], df["enemy_draft"])])
-    # y = df["win"].to_numpy()
-    # team_ids = df["team_id"].to_numpy()
-    #
-    # return X, y, team_ids
 
     # Convert drafts to vectors
     draft_X = np.array([draft_to_vector(ally, enemy) for ally, enemy in zip(df["ally_draft"], df["enemy_draft"])])
