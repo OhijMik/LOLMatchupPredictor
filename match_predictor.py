@@ -92,14 +92,11 @@ def main():
     predict_file = pd.read_csv("data/predict.csv").reset_index(drop=True)
 
     for i in range(len(predict_file)):
-        ally_names = ast.literal_eval(predict_file.loc[i, "ally_draft"])
-        enemy_names = ast.literal_eval(predict_file.loc[i, "enemy_draft"])
+        ally_draft = ast.literal_eval(predict_file.loc[i, "ally_draft"])
+        enemy_draft = ast.literal_eval(predict_file.loc[i, "enemy_draft"])
         team_id = predict_file["team_id"][i]
 
-        ally_ids = names_to_ids(ally_names)
-        enemy_ids = names_to_ids(enemy_names)
-
-        pred_class, pred_prob = predict_draft(knn, ally_ids, enemy_ids, team_id, unique_team_ids)
+        pred_class, pred_prob = predict_draft(knn, ally_draft, enemy_draft, team_id, unique_team_ids)
 
         print(f"Match {i + 1}, Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
 

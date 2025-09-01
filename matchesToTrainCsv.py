@@ -40,18 +40,24 @@ for line in input_data.split('\n'):
         blue_draft_ids = [str(champ_to_id[champ.strip()]) for champ in blue_draft]
         red_draft_ids = [str(champ_to_id[champ.strip()]) for champ in red_draft]
 
+        # Determine win/loss (1 for win, 0 for loss)
+        blue_win = 1 if winner == blue_team else 0
+        red_win = 1 if winner == red_team else 0
+
         # Blue team perspective
         blue_team_data.append([
             team_to_id[blue_team],
             f"[{', '.join(blue_draft_ids)}]",
-            f"[{', '.join(red_draft_ids)}]"
+            f"[{', '.join(red_draft_ids)}]",
+            blue_win
         ])
 
         # Red team perspective
         red_team_data.append([
             team_to_id[red_team],
             f"[{', '.join(red_draft_ids)}]",
-            f"[{', '.join(blue_draft_ids)}]"
+            f"[{', '.join(blue_draft_ids)}]",
+            red_win
         ])
 
 # Append to existing CSV files (create if they don't exist)
