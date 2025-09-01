@@ -10,63 +10,62 @@ champion_name_meta = pd.read_csv("data/champion_meta.csv")
 champ_to_id = dict(zip(champion_name_meta["name"], champion_name_meta["champion_id"]))
 
 # Input data with winner column
-input_data = """GAM Esports	Team Secret Whales	GAM Esports	Renekton,Viego,Taliyah,Sivir,Alistar	K'Sante,Vi,Ahri,Varus,Rakan
-GAM Esports	Team Secret Whales	GAM Esports	Sion,Pantheon,Galio,Corki,Rell	Aatrox,Wukong,Annie,Ezreal,Neeko
-Fukuoka SoftBank HAWKS gaming	DetonatioN FocusMe	DetonatioN FocusMe	Gwen,Pantheon,Ryze,Jhin,Rell	Jax,Trundle,Taliyah,Lucian,Braum
-DetonatioN FocusMe	Fukuoka SoftBank HAWKS gaming	DetonatioN FocusMe	Rumble,Nocturne,Orianna,Smolder,Nautilus	K'Sante,Xin Zhao,Annie,Corki,Rakan
-Team Secret Whales	MGN Vikings Esports	Team Secret Whales	Jayce,Poppy,Orianna,Xayah,Rakan	K'Sante,Xin Zhao,Hwei,Miss Fortune,Rell
-MGN Vikings Esports	Team Secret Whales	MGN Vikings Esports	Udyr,Jarvan IV,Ziggs,Yunara,Alistar	Sion,Pantheon,Azir,Corki,Bard
-Team Secret Whales	MGN Vikings Esports	Team Secret Whales	Ambessa,Wukong,Annie,Sivir,Neeko	Yorick,Vi,Ryze,Varus,Nautilus
-Fukuoka SoftBank HAWKS gaming	Chiefs Esports Club	Fukuoka SoftBank HAWKS gaming	Ambessa,Skarner,Orianna,Sivir,Neeko	Yorick,Kindred,Galio,Kai'Sa,Nautilus
-Chiefs Esports Club	Fukuoka SoftBank HAWKS gaming	Chiefs Esports Club	Rumble,Nocturne,Aurora,Smolder,Alistar	Ornn,Trundle,Ryze,Lucian,Braum
-Fukuoka SoftBank HAWKS gaming	Chiefs Esports Club	Fukuoka SoftBank HAWKS gaming	K'Sante,Xin Zhao,Annie,Yunara,Rakan	Rek'Sai,Qiyana,Azir,Corki,Rell
-GAM Esports	CTBC Flying Oyster	CTBC Flying Oyster	Renekton,Viego,Annie,Kog'Maw,Braum	Sion,Trundle,Orianna,Sivir,Rakan
-CTBC Flying Oyster	GAM Esports	CTBC Flying Oyster	Rumble,Wukong,Azir,Kai'Sa,Neeko	Galio,Xin Zhao,Aurora,Corki,Bard
-PSG Talon	DetonatioN FocusMe	PSG Talon	Ambessa,Pantheon,Viktor,Lucian,Braum	K'Sante,Qiyana,Aurora,Corki,Bard
-PSG Talon	DetonatioN FocusMe	PSG Talon	Galio,Vi,Taliyah,Varus,Nautilus	Rumble,Trundle,Ryze,Jhin,Neeko
-Fukuoka SoftBank HAWKS gaming	DetonatioN FocusMe	DetonatioN FocusMe	Mordekaiser,Vi,Viktor,Lucian,Rell	Sion,Talon,Aurora,Senna,Blitzcrank
-DetonatioN FocusMe	Fukuoka SoftBank HAWKS gaming	DetonatioN FocusMe	K'Sante,Zed,Taliyah,Sivir,Bard	Renekton,Trundle,Azir,Jhin,Alistar
-Fukuoka SoftBank HAWKS gaming	DetonatioN FocusMe	Fukuoka SoftBank HAWKS gaming	Ambessa,Wukong,Galio,Ezreal,Rakan	Rumble,Nocturne,Orianna,Corki,Braum
-Chiefs Esports Club	PSG Talon	PSG Talon	Sion,Maokai,Yone,Lucian,Braum	Ambessa,Jarvan IV,Taliyah,Corki,Alistar
-PSG Talon	Chiefs Esports Club	PSG Talon	Gwen,Xin Zhao,Aurora,Varus,Rakan	Rumble,Wukong,Galio,Kai'Sa,Neeko
-Team Secret Whales	GAM Esports	GAM Esports	Renekton,Sylas,Azir,Varus,Rell	Gnar,Wukong,Akali,Corki,Nautilus
-Team Secret Whales	GAM Esports	GAM Esports	K'Sante,Nocturne,Orianna,Kai'Sa,Rakan	Rumble,Pantheon,Galio,Yunara,Braum
-CTBC Flying Oyster	MGN Vikings Esports	CTBC Flying Oyster	Shen,Wukong,Akali,Kai'Sa,Neeko	Sion,Xin Zhao,Orianna,Jhin,Poppy
-MGN Vikings Esports	CTBC Flying Oyster	MGN Vikings Esports	Rumble,Vi,Ryze,Senna,Nautilus	K'Sante,Jarvan IV,Viktor,Ezreal,Leona
-CTBC Flying Oyster	MGN Vikings Esports	CTBC Flying Oyster	Gwen,Pantheon,Taliyah,Lucian,Braum	Ambessa,Zyra,Corki,Sivir,Rakan
-MGN Vikings Esports	PSG Talon	MGN Vikings Esports	Ambessa,Wukong,Annie,Sivir,Braum	Renekton,Xin Zhao,Ryze,Corki,Rell
-PSG Talon	MGN Vikings Esports	MGN Vikings Esports	Aatrox,Pantheon,Taliyah,Kai'Sa,Neeko	K'Sante,Jarvan IV,Azir,Senna,Nautilus
-GAM Esports	Fukuoka SoftBank HAWKS gaming	GAM Esports	Jax,Zed,Taliyah,Lucian,Braum	Ambessa,Jarvan IV,Ryze,Ezreal,Alistar
-GAM Esports	Fukuoka SoftBank HAWKS gaming	GAM Esports	Gwen,Wukong,Annie,Corki,Rakan	Rumble,Xin Zhao,Azir,Jhin,Rell
-Team Secret Whales	CTBC Flying Oyster	CTBC Flying Oyster	Jax,Trundle,Ziggs,Jhin,Bard	Ambessa,Xin Zhao,Azir,Varus,Neeko
-Team Secret Whales	CTBC Flying Oyster	CTBC Flying Oyster	Aurora,Wukong,Galio,Kai'Sa,Rell	Sion,Pantheon,Annie,Yunara,Braum
-DetonatioN FocusMe	Fukuoka SoftBank HAWKS gaming	Fukuoka SoftBank HAWKS gaming	Aatrox,Jarvan IV,Ahri,Xayah,Rakan	Ambessa,Sejuani,Sylas,Kai'Sa,Rell
-DetonatioN FocusMe	Fukuoka SoftBank HAWKS gaming	DetonatioN FocusMe	Rumble,Nocturne,Orianna,Corki,Galio	Ornn,Vi,Aurora,Lucian,Braum
-DetonatioN FocusMe	Fukuoka SoftBank HAWKS gaming	Fukuoka SoftBank HAWKS gaming	Sion,Xin Zhao,Azir,Senna,Alistar	K'Sante,Wukong,Taliyah,Yunara,Nautilus
-PSG Talon	GAM Esports	GAM Esports	Rumble,Vi,Ahri,Corki,Nautilus	Galio,Xin Zhao,Taliyah,Kai'Sa,Braum
-PSG Talon	GAM Esports	GAM Esports	Sion,Ivern,Azir,Sivir,Rell	Aurora,Maokai,Yone,Yunara,Rakan
-MGN Vikings Esports	Chiefs Esports Club	MGN Vikings Esports	Jayce,Vi,Ziggs,Senna,Nautilus	Ornn,Trundle,Azir,Xayah,Rakan
-Chiefs Esports Club	MGN Vikings Esports	Chiefs Esports Club	K'Sante,Maokai,Yone,Kai'Sa,Neeko	Udyr,Jarvan IV,Aurora,Ezreal,Karma
-Chiefs Esports Club	MGN Vikings Esports	MGN Vikings Esports	Jax,Xin Zhao,Taliyah,Yunara,Braum	Ambessa,Wukong,Annie,Lucian,Alistar
-GAM Esports	Team Secret Whales	Team Secret Whales	K'Sante,Viego,Annie,Varus,Neeko	Renekton,Jarvan IV,Galio,Corki,Bard
-Team Secret Whales	GAM Esports	Team Secret Whales	Ornn,Nocturne,Orianna,Kai'Sa,Poppy	Rumble,Trundle,Azir,Sivir,Alistar
-Fukuoka SoftBank HAWKS gaming	MGN Vikings Esports	MGN Vikings Esports	Ornn,Pantheon,Viktor,Xayah,Rakan	K'Sante,Jarvan IV,Hwei,Lucian,Nautilus
-MGN Vikings Esports	Fukuoka SoftBank HAWKS gaming	MGN Vikings Esports	Ambessa,Zyra,Azir,Senna,Alistar	Yorick,Wukong,Taliyah,Corki,Rell
-PSG Talon	CTBC Flying Oyster	CTBC Flying Oyster	Yorick,Trundle,Ryze,Yunara,Lulu	Renekton,Jarvan IV,Aurora,Kai'Sa,Neeko
-PSG Talon	CTBC Flying Oyster	CTBC Flying Oyster	Gwen,Skarner,Azir,Sivir,Alistar	Ambessa,Maokai,Yone,Ezreal,Braum
-DetonatioN FocusMe	Chiefs Esports Club	DetonatioN FocusMe	Ambessa,Trundle,Orianna,Senna,Blitzcrank	Camille,Ivern,Akali,Xayah,Leona
-Chiefs Esports Club	DetonatioN FocusMe	Chiefs Esports Club	K'Sante,Xin Zhao,Galio,Corki,Neeko	Jax,Jarvan IV,Ryze,Sivir,Bard
-DetonatioN FocusMe	Chiefs Esports Club	DetonatioN FocusMe	Gwen,Wukong,Ahri,Lucian,Rakan	Rumble,Vi,Taliyah,Kai'Sa,Rell
-GAM Esports	CTBC Flying Oyster	CTBC Flying Oyster	Sion,Zyra,Yone,Lucian,Nautilus	Ambessa,Skarner,Twisted Fate,Aphelios,Thresh
-CTBC Flying Oyster	GAM Esports	CTBC Flying Oyster	K'Sante,Trundle,Annie,Kai'Sa,Leona	Aurora,Wukong,Ryze,Miss Fortune,Rakan
-GAM Esports	CTBC Flying Oyster	GAM Esports	Gwen,Pantheon,Ahri,Sivir,Rell	Gragas,Xin Zhao,Taliyah,Corki,Braum
-Fukuoka SoftBank HAWKS gaming	Chiefs Esports Club	Fukuoka SoftBank HAWKS gaming	Yorick,Nocturne,Galio,Kai'Sa,Alistar	Rumble,Xin Zhao,Sylas,Miss Fortune,Blitzcrank
-Chiefs Esports Club	Fukuoka SoftBank HAWKS gaming	Chiefs Esports Club	Jax,Ivern,Azir,Xayah,Rakan	Ambessa,Maokai,Yone,Sivir,Nautilus
-Fukuoka SoftBank HAWKS gaming	Chiefs Esports Club	Fukuoka SoftBank HAWKS gaming	K'Sante,Wukong,Aurora,Varus,Rell	Sion,Trundle,Ryze,Lucian,Braum
-PSG Talon	Team Secret Whales	Team Secret Whales	Rumble,Wukong,Annie,Jhin,Rakan	Sion,Trundle,Ryze,Corki,Bard
-PSG Talon	Team Secret Whales	Team Secret Whales	Ambessa,Vi,Taliyah,Vayne,Alistar	Gwen,Xin Zhao,Galio,Sivir,Poppy
-DetonatioN FocusMe	MGN Vikings Esports	MGN Vikings Esports	Sion,Xin Zhao,Aurora,Senna,Rakan	Jax,Zyra,Corki,Smolder,Alistar
-MGN Vikings Esports	DetonatioN FocusMe	MGN Vikings Esports	K'Sante,Nocturne,Azir,Sivir,Karma	Ornn,Wukong,Taliyah,Varus,Neeko"""
+input_data = """Vivo Keyd Stars	paiN Gaming	Vivo Keyd Stars	Jax,Sejuani,Yone,Kai'Sa,Leona	Yorick,Maokai,Ryze,Ezreal,Braum
+Vivo Keyd Stars	paiN Gaming	Vivo Keyd Stars	K'Sante,Xin Zhao,Aurora,Zeri,Renata Glasc	Renekton,Zyra,Taliyah,Sivir,Alistar
+Vivo Keyd Stars	paiN Gaming	Vivo Keyd Stars	Ambessa,Jarvan IV,Azir,Yunara,Rakan	Camille,Trundle,Ziggs,Corki,Neeko
+paiN Gaming	Vivo Keyd Stars	paiN Gaming	Galio,Nocturne,Orianna,Varus,Nautilus	Rumble,Wukong,Akali,Jhin,Rell
+FURIA	LOUD	LOUD	Sion,Vi,Galio,Ashe,Seraphine	Cho'Gath,Volibear,Ryze,Lucian,Rell
+FURIA	LOUD	LOUD	K'Sante,Xin Zhao,Azir,Jhin,Bard	Renekton,Skarner,Ziggs,Corki,Pyke
+FURIA	LOUD	LOUD	Gwen,Pantheon,Annie,Yunara,Neeko	Rumble,Wukong,Orianna,Sivir,Alistar
+Leviatan	RED Canids	RED Canids	Aatrox,Vi,Ryze,Lucian,Nami	Yorick,Skarner,Syndra,Kalista,Neeko
+RED Canids	Leviatan	RED Canids	Sion,Nidalee,Zed,Miss Fortune,Pyke	K'Sante,Sejuani,Taliyah,Ezreal,Rakan
+Leviatan	RED Canids	Leviatan	Ambessa,Poppy,Ziggs,Varus,Nautilus	Renekton,Wukong,Azir,Jhin,Rell
+RED Canids	Leviatan	RED Canids	Galio,Xin Zhao,Ahri,Yunara,Alistar	Rumble,Jarvan IV,Orianna,Xayah,Bard
+Leviatan	Isurus	Leviatan	Renekton,Maokai,Yone,Aphelios,Lulu	Cho'Gath,Amumu,Jayce,Kalista,Renata Glasc
+Leviatan	Isurus	Leviatan	Jax,Skarner,Aurora,Yunara,Bard	Gangplank,Jarvan IV,Taliyah,Zeri,Karma
+Isurus	Leviatan	Isurus	Sion,Xin Zhao,Ahri,Varus,Leona	K'Sante,Pantheon,Akali,Corki,Neeko
+Leviatan	Isurus	Leviatan	Rumble,Trundle,Syndra,Xayah,Rell	Galio,Zed,Annie,Sivir,Rakan
+Isurus	Leviatan	Isurus	Ambessa,Wukong,Viktor,Lucian,Alistar	Gwen,Vi,Orianna,Kai'Sa,Nautilus
+LOUD	Fluxo W7M	LOUD	Renekton,Volibear,Orianna,Aphelios,Rell	Jax,Skarner,Akali,Ezreal,Bard
+Fluxo W7M	LOUD	LOUD	Galio,Xin Zhao,Ahri,Kai'Sa,Braum	Rumble,Viego,Syndra,Sivir,Alistar
+LOUD	Fluxo W7M	LOUD	Gwen,Trundle,Ryze,Xayah,Rakan	Aurora,Jarvan IV,Annie,Corki,Nautilus
+paiN Gaming	RED Canids	paiN Gaming	Aatrox,Vi,Taliyah,Senna,Nautilus	Aurora,Dr. Mundo,Lucian,Miss Fortune,Leona
+RED Canids	paiN Gaming	paiN Gaming	Yorick,Skarner,Twisted Fate,Kalista,Renata Glasc	Renekton,Zyra,Annie,Xayah,Rakan
+RED Canids	paiN Gaming	RED Canids	Sion,Xin Zhao,Ryze,Yunara,Karma	Cho'Gath,Maokai,Corki,Kai'Sa,Neeko
+paiN Gaming	RED Canids	paiN Gaming	Rumble,Trundle,Azir,Varus,Alistar	Ambessa,Nocturne,Orianna,Ezreal,Bard
+FURIA	Vivo Keyd Stars	Vivo Keyd Stars	K'Sante,Viego,Ryze,Aphelios,Tahm Kench	Camille,Nocturne,Galio,Jinx,Thresh
+FURIA	Vivo Keyd Stars	Vivo Keyd Stars	Jax,Jarvan IV,Aurora,Senna,Nautilus	Ambessa,Sejuani,Azir,Sivir,Neeko
+Vivo Keyd Stars	FURIA	Vivo Keyd Stars	Sion,Pantheon,Annie,Yunara,Rell	Rumble,Skarner,Taliyah,Corki,Rakan
+RED Canids	paiN Gaming	RED Canids	Rumble,Xin Zhao,Sylas,Varus,Rakan	Ambessa,Trundle,Galio,Sivir,Bard
+paiN Gaming	RED Canids	RED Canids	K'Sante,Jarvan IV,Taliyah,Yunara,Rell	Cho'Gath,Wukong,Akali,Corki,Neeko
+Fluxo W7M	Leviatan	Leviatan	Sion,Xin Zhao,Viktor,Ezreal,Leona	K'Sante,Vi,Ryze,Corki,Rakan
+Fluxo W7M	Leviatan	Leviatan	Ambessa,Trundle,Azir,Senna,Rell	Renekton,Nocturne,Orianna,Sivir,Nautilus
+Isurus	LOUD	LOUD	Cho'Gath,Trundle,Aurora,Varus,Bard	Yorick,Ambessa,Annie,Lucian,Pyke
+LOUD	Isurus	LOUD	Rumble,Wukong,Orianna,Sivir,Alistar	Sion,Vi,Taliyah,Yunara,Nautilus
+Vivo Keyd Stars	FURIA	FURIA	Sion,Pantheon,Annie,Miss Fortune,Alistar	K'Sante,Skarner,Akali,Corki,Neeko
+Vivo Keyd Stars	FURIA	Vivo Keyd Stars	Ambessa,Trundle,Galio,Varus,Nautilus	Rumble,Vi,Ahri,Sivir,Braum
+Vivo Keyd Stars	FURIA	FURIA	Gwen,Jarvan IV,Viktor,Kai'Sa,Rell	Aurora,Xin Zhao,Ryze,Yunara,Renata Glasc
+RED Canids	LOUD	RED Canids	Galio,Pantheon,Sylas,Corki,Leona	Rumble,Jarvan IV,Yone,Jhin,Nautilus
+LOUD	RED Canids	LOUD	Ambessa,Volibear,Aurora,Kai'Sa,Rell	Aatrox,Vi,Annie,Senna,Alistar
+LOUD	RED Canids	RED Canids	Renekton,Xin Zhao,Orianna,Xayah,Rakan	Yorick,Wukong,Taliyah,Ezreal,Bard
+Leviatan	Vivo Keyd Stars	Vivo Keyd Stars	Ambessa,Vi,Akali,Sivir,Neeko	Rumble,Xin Zhao,Sylas,Jhin,Alistar
+Leviatan	Vivo Keyd Stars	Vivo Keyd Stars	Gwen,Trundle,Ryze,Senna,Nautilus	Jax,Wukong,Orianna,Corki,Rell
+Isurus	Fluxo W7M	Isurus	Yorick,Vi,Viktor,Sivir,Alistar	Jax,Sejuani,Sylas,Corki,Rell
+Fluxo W7M	Isurus	Fluxo W7M	Renekton,Pantheon,Ryze,Ashe,Seraphine	K'Sante,Poppy,Aurora,Lucian,Blitzcrank
+Fluxo W7M	Isurus	Isurus	Ambessa,Wukong,Annie,Yunara,Nautilus	Sion,Xin Zhao,Azir,Xayah,Rakan
+FURIA	paiN Gaming	paiN Gaming	Gangplank,Vi,Aurora,Senna,Nautilus	Jax,Skarner,Orianna,Lucian,Nami
+FURIA	paiN Gaming	paiN Gaming	Sion,Poppy,Azir,Kai'Sa,Alistar	Rumble,Jarvan IV,Ziggs,Miss Fortune,Rakan
+paiN Gaming	FURIA	FURIA	Gwen,Xin Zhao,Ryze,Sivir,Neeko	Ambessa,Wukong,Zoe,Varus,Karma
+LOUD	Vivo Keyd Stars	Vivo Keyd Stars	Sion,Sejuani,Viktor,Ezreal,Bard	K'Sante,Nocturne,Sylas,Kai'Sa,Neeko
+Vivo Keyd Stars	LOUD	Vivo Keyd Stars	Gwen,Jarvan IV,Aurora,Jhin,Alistar	Gragas,Ambessa,Orianna,Senna,Braum
+LOUD	Vivo Keyd Stars	LOUD	Yorick,Wukong,Annie,Sivir,Rakan	Rumble,Xin Zhao,Taliyah,Corki,Rell
+RED Canids	Isurus	RED Canids	Ambessa,Xin Zhao,Twisted Fate,Senna,Rell	Aatrox,Lee Sin,Annie,Smolder,Nautilus
+RED Canids	Isurus	Isurus	Yorick,Sejuani,Azir,Caitlyn,Neeko	Sion,Jarvan IV,Viktor,Sivir,Alistar
+Isurus	RED Canids	RED Canids	Rumble,Wukong,Taliyah,Jhin,Rakan	Renekton,Trundle,Orianna,Ezreal,Leona
+Leviatan	paiN Gaming	paiN Gaming	K'Sante,Vi,Ahri,Kai'Sa,Rell	Jax,Nocturne,Galio,Corki,Rakan
+paiN Gaming	Leviatan	paiN Gaming	Rumble,Maokai,Yone,Miss Fortune,Alistar	Sion,Xin Zhao,Azir,Sivir,Braum
+Fluxo W7M	FURIA	FURIA	Rumble,Xin Zhao,Ahri,Kai'Sa,Rell	Ornn,Jax,Sylas,Senna,Seraphine
+FURIA	Fluxo W7M	FURIA	Gwen,Trundle,Azir,Jhin,Rakan	Aurora,Wukong,Akali,Ashe,Alistar"""
 
 # Process the data
 blue_team_data = []
