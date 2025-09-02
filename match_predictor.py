@@ -35,7 +35,7 @@ def predict_draft(knn_model, ally_draft, enemy_draft, team_id, unique_team_ids):
 
     # Predict probability and class
     win_prob = knn_model.predict_proba(x_input)[0][1]  # probability of winning
-    win_class = knn_model.predict(x_input)[0]          # predicted class 0/1
+    win_class = (1 if win_prob >= 0.5 else 0)
 
     return win_class, win_prob
 
@@ -47,7 +47,7 @@ def main():
     X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-    k_values = [1, 3, 5, 10, 20]
+    k_values = [1, 3, 5, 10, 20, 25]
     val_accuracies = []
 
     for k in k_values:

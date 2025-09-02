@@ -5,11 +5,11 @@ import ast
 
 
 # Load champion meta
-champion_name_meta = pd.read_csv("data/champion_meta.csv")
+champion_name_meta = pd.read_csv("data/champion_meta(mobalytics)2.csv")
 # Create name -> id mapping
 name_to_id = dict(zip(champion_name_meta["name"], champion_name_meta["champion_id"]))
 
-champion_meta = pd.read_csv("data/champion_meta.csv", index_col="champion_id")
+champion_meta = pd.read_csv("data/champion_meta(mobalytics)2.csv", index_col="champion_id")
 # Drop "name" because it's not numeric
 champion_features = champion_meta.drop(columns=["name"]).to_numpy()
 
@@ -22,6 +22,8 @@ def draft_to_vector(ally_picks, enemy_picks):
     # Role/class feature part
     ally_roles = np.sum(champion_features[np.array(ally_picks) - 1], axis=0)
     enemy_roles = np.sum(champion_features[np.array(enemy_picks) - 1], axis=0)
+    # ally_roles = champion_features[np.array(ally_picks) - 1].flatten()
+    # enemy_roles = champion_features[np.array(enemy_picks) - 1].flatten()
 
     # Concatenate: [ally_roles, enemy_roles]
     return np.concatenate([ally_roles, enemy_roles])
