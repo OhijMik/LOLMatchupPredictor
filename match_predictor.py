@@ -44,8 +44,8 @@ def main():
     X, y = load_train_csv("./data")
 
     # Split train/val/test
-    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
-    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=2)
+    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=2)
 
     k_values = [1, 3, 5, 10, 20, 25]
     val_accuracies = []
@@ -78,27 +78,29 @@ def main():
     # print(f"Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
     #
     # # Example prediction 2
-    # ally_draft = ["Ambessa", "Wukong", "Azir", "Corki", "Bard"]  # champion names
-    # enemy_draft = ["Rumble", "Sejuani", "Yone", "Varus", "Karma"]
-    # team_id = 6
-    #
-    # # Convert names to IDs
-    # ally_ids = names_to_ids(ally_draft)
-    # enemy_ids = names_to_ids(enemy_draft)
-    #
-    # pred_class, pred_prob = predict_draft(knn, ally_ids, enemy_ids, team_id, unique_team_ids)
+    ally_draft = ["Sion", "Nocturne", "Orianna", "Aphelios", "Thresh"]  # champion names
+    enemy_draft = ["Rumble", "Xin Zhao", "Galio", "Xayah", "Rakan"]
+    team_id = 16
+
+    # Convert names to IDs
+    ally_ids = names_to_ids(ally_draft)
+    enemy_ids = names_to_ids(enemy_draft)
+
+    pred_class, pred_prob = predict_draft(knn, ally_ids, enemy_ids, team_id, unique_team_ids)
+
+    print(f"Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
 
     # Example prediction 3
-    predict_file = pd.read_csv("data/predict.csv").reset_index(drop=True)
-
-    for i in range(len(predict_file)):
-        ally_draft = ast.literal_eval(predict_file.loc[i, "ally_draft"])
-        enemy_draft = ast.literal_eval(predict_file.loc[i, "enemy_draft"])
-        team_id = predict_file["team_id"][i]
-
-        pred_class, pred_prob = predict_draft(knn, ally_draft, enemy_draft, team_id, unique_team_ids)
-
-        print(f"Match {i + 1}, Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
+    # predict_file = pd.read_csv("data/predict.csv").reset_index(drop=True)
+    #
+    # for i in range(len(predict_file)):
+    #     ally_draft = ast.literal_eval(predict_file.loc[i, "ally_draft"])
+    #     enemy_draft = ast.literal_eval(predict_file.loc[i, "enemy_draft"])
+    #     team_id = predict_file["team_id"][i]
+    #
+    #     pred_class, pred_prob = predict_draft(knn, ally_draft, enemy_draft, team_id, unique_team_ids)
+    #
+    #     print(f"Match {i + 1}, Predicted win: {pred_class}, Probability: {pred_prob:.2f}\n")
 
 
 if __name__ == "__main__":

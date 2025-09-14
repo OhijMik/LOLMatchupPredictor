@@ -1,6 +1,5 @@
 champion_id,name,top,jg,mid,adc,sup,assassin,fighter,mage,marksman,support,tank
 1,Aatrox,1,0,0,0,0,0,1,0,0,0,0
-2,Ahri,0,0,1,0,0,1,0,1,0,0,0
 3,Akali,0,0,1,0,0,1,0,0,0,0,0
 4,Akshan,0,0,1,0,0,1,0,0,1,0,0
 5,Alistar,0,0,0,0,1,0,0,0,0,1,1

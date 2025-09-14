@@ -10,7 +10,7 @@ champion_name_meta = pd.read_csv("data/champion_meta(mobalytics)2.csv")
 name_to_id = dict(zip(champion_name_meta["name"], champion_name_meta["champion_id"]))
 
 champion_meta = pd.read_csv("data/champion_meta(mobalytics)2.csv", index_col="champion_id")
-# Drop "name" because it's not numeric
+# Drop "name"
 champion_features = champion_meta.drop(columns=["name"]).to_numpy()
 
 num_champions = champion_features.shape[0]
